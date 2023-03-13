@@ -36,11 +36,15 @@ jobs:
       - name: depend libs
         run: |
           sudo apt install git-core gnupg flex bison gperf build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z-dev ccache libgl1-mesa-dev libxml2-utils xsltproc unzip rsync python2 python3 openjdk-11-jdk tree repo
-      - name: downloand source Anykernel3 platform/prebuilts/gas/linux-x86 android_prebuilts_clang-standalone
+
+      - name: downloand source
         run: |
           mkdir android-kernel && cd android-kernel
           repo init --depth=1 -u https://android.googlesource.com/kernel/manifest -b common-android12-5.10-2022-01
           repo sync
+
+      - name: build gki
+        run: |
           cd ..
           du -h --max-depth=1
           ls -alh android-kernel
@@ -48,8 +52,10 @@ jobs:
           ls -alh
           SKIP_MRPROPER=1 LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
           ls -alh
-          du -h --max-depth=1 out
-          tree out
+          du -h --max-depth=1 out/android12-5.10/dist
+          tree out/android12-5.10/dist
+          rm out/android12-5.10/dist/vmlinux
+
       - uses: actions/upload-artifact@v3
         with:
             name: kernel-gki-xaga
