@@ -54,4 +54,4 @@ jobs:
         with:
             name: kernel-gki-xaga
             #path: out/arch/arm64/boot
-            path: out
+            path: out/android12-5.10/dist
