@@ -52,7 +52,7 @@ jobs:
           ls -alh android-kernel
           mv -n android-kernel/* .
           ls -alh
-          SKIP_MRPROPER=1 LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+          LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
           ls -alh
           du -h --max-depth=1 out/android12-5.10/dist
           tree out/android12-5.10/dist
