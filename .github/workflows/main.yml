@@ -52,6 +52,8 @@ jobs:
           ls -alh android-kernel
           mv -n android-kernel/* .
           ls -alh
+          rm build/build.sh
+          cp build.sh build
           LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
           ls -alh
           du -h --max-depth=1 out/android12-5.10/dist
