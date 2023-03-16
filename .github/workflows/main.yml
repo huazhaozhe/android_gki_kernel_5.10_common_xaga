@@ -9,7 +9,7 @@ jobs:
     steps:
     - name: Install Package For Build
       run: |
-        sudo apt update && sudo apt install -y curl liblz4-1 libyaml-0-2 p7zip-full gcc g++ bison bc make git zip flex zipalign libssl-dev python3 gcc-aarch64-linux-gnu cpio tree
+        sudo apt update && sudo apt install -y curl liblz4-1 libyaml-0-2 p7zip-full gcc g++ bison bc make git zip flex zipalign libssl-dev python3 gcc-aarch64-linux-gnu cpio tree vim
 
     - name: Download Build Tools
       run: |
@@ -24,6 +24,10 @@ jobs:
         git checkout --orphan android12-5.10-2022-01
         git rm -rf .
         git pull https://github.com/huazhaozhe/android_gki_kernel_5.10_common_xaga.git android12-5.10-2022-01
+
+    - uses: actions/checkout@v3
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
     - name: Build Kernel
       run: |
