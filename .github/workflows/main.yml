@@ -1,73 +1,77 @@
-name: CI
+name: Build android common kernel
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "upstr" branch
+
   push:
-    branches: [ "android12-5.10-2022-01" ]
-  pull_request:
+
     branches: [ "android12-5.10-2022-01" ]
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
+
   build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-22.04
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    runs-on: ubuntu-latest
+
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      #- uses: actions/checkout@v3
+    - name: Remove Useless Package
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      run: |
+        docker rmi `docker images -q`
+        sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/sudo apt/sources.list.d
+        sudo apt -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mysql* php*
+        sudo apt -y autoremove --purge
+        sudo apt -y autoclean
+        sudo apt clean
+    - name: Install Package For Build
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
-    
-      - name: depend libs
-        run: |
-          pwd
-          sudo apt install git-core gnupg flex bison gperf build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z-dev ccache libgl1-mesa-dev libxml2-utils xsltproc unzip rsync python2 python3 openjdk-11-jdk tree repo
-          tree -L 2
+      run: |
+        sudo apt update && sudo apt install -y curl liblz4-1 libyaml-0-2 p7zip-full gcc g++ bison bc make git zip flex zipalign libssl-dev python3 gcc-aarch64-linux-gnu cpio tree
+    - name: Maximize Build Space
 
-      - name: downloand source
-        run: |
-          pwd
-          tree -L 2
-          mkdir android-kernel && cd android-kernel
-          repo init --depth=1 -u https://android.googlesource.com/kernel/manifest -b common-android12-5.10-2022-01
-          repo sync
-          tree -L 2
+      uses: easimon/maximize-build-space@master
 
-      - name: build gki
-        run: |
-          pwd
-          tree -L 2
-          ls -alh
-          du -h --max-depth=1
-          ls -alh android-kernel
-          mv -n android-kernel/* .
-          ls -alh
-          rm build/build.sh
-          cp ./build.sh build
-          LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
-          ls -alh
-          du -h --max-depth=1 out/android12-5.10/dist
-          tree out/android12-5.10/dist
-          rm out/android12-5.10/dist/vmlinux
-          tree -L 2
+      with:
 
-      - uses: actions/upload-artifact@v3
-        with:
-            name: kernel-gki-xaga
-            #path: out/arch/arm64/boot
-            path: out/android12-5.10/dist
+        swap-size-mb: 20480
+
+        remove-dotnet: 'true'
+
+        remove-android: 'true'
+
+        remove-haskell: 'true'
+
+    - name: Download Build Tools
+
+      run: |
+        cd $GITHUB_WORKSPACE
+        git clone https://gerrit.googlesource.com/git-repo
+        mkdir android-kernel && cd android-kernel
+        ../git-repo/repo init --depth=1 --u https://android.googlesource.com/kernel/manifest -b common-android12-5.10-2022-01
+        ../git-repo/repo sync
+        cd common
+        git checkout --orphan android12-5.10-2022-01
+        git rm -rf .
+        git pull https://github.com/huazhaozhe/android_gki_kernel_5.10_common_xaga.git -b android12-5.10-2022-01 --depth=1
+    - name: Build Kernel
+
+      run: |
+        cd $GITHUB_WORKSPACE/android-kernel
+        LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+    - name: Build Kernel Package
+
+      run: |
+        VERSION="GKI-5.10-$(date '+%Y-%m%d-%H%M')"
+        cd $GITHUB_WORKSPACE
+        git clone https://github.com/zzh-zzh-zzh/AnyKernel3.git -b GKI --depth=1
+        cp android-kernel/out/android12-5.10/dist/Image AnyKernel3
+        cd AnyKernel3
+        7z a -mx9 tmp.zip *
+        zipalign -v 4 tmp.zip ../$VERSION.zip
+        rm tmp.zip
+    - name: Upload Image
+
+      uses: actions/upload-artifact@v3
+
+      with:
+
+        path: GKI-5.10-*.zip
