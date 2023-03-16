@@ -30,10 +30,9 @@ jobs:
         cd $GITHUB_WORKSPACE/android-kernel
         pwd
         tree -L 2
-        cd common/arch/arm64/configs
-        rm gki_defconfig
-        wget https://raw.githubusercontent.com/huazhaozhe/android_gki_kernel_5.10_common_xaga/android12-5.10-2022-01/arch/arm64/configs/gki_defconfig
-        cat gki_defconfig
+        cd build
+        rm _setup_env.sh
+        wget https://raw.githubusercontent.com/huazhaozhe/android_gki_kernel_5.10_common_xaga/android12-5.10-2022-01/_setup_env.sh
         cd -
         LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
