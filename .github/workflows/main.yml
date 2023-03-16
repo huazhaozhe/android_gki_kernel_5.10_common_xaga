@@ -13,37 +13,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Remove Useless Package
-
-      run: |
-        docker rmi `docker images -q`
-        sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/sudo apt/sources.list.d
-        sudo apt -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mysql* php*
-        sudo apt -y autoremove --purge
-        sudo apt -y autoclean
-        sudo apt clean
     - name: Install Package For Build
-
       run: |
         sudo apt update && sudo apt install -y curl liblz4-1 libyaml-0-2 p7zip-full gcc g++ bison bc make git zip flex zipalign libssl-dev python3 gcc-aarch64-linux-gnu cpio tree
-    - name: Maximize Build Space
-
-      uses: easimon/maximize-build-space@master
-
-      with:
-
-        swap-size-mb: 20480
-
-        remove-dotnet: 'true'
-
-        remove-android: 'true'
-
-        remove-haskell: 'true'
 
     - name: Download Build Tools
-
       run: |
         cd $GITHUB_WORKSPACE
+        pwd
+        tree -L 2
         git clone https://gerrit.googlesource.com/git-repo
         mkdir android-kernel && cd android-kernel
         ../git-repo/repo init --depth=1 --u https://android.googlesource.com/kernel/manifest -b common-android12-5.10-2022-01
@@ -52,26 +30,28 @@ jobs:
         git checkout --orphan android12-5.10-2022-01
         git rm -rf .
         git pull https://github.com/huazhaozhe/android_gki_kernel_5.10_common_xaga.git -b android12-5.10-2022-01 --depth=1
-    - name: Build Kernel
 
+    - name: Build Kernel
       run: |
         cd $GITHUB_WORKSPACE/android-kernel
+        pwd
+        tree -L 2
         LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
-    - name: Build Kernel Package
 
+    - name: Build Kernel Package
       run: |
         VERSION="GKI-5.10-$(date '+%Y-%m%d-%H%M')"
         cd $GITHUB_WORKSPACE
+        pwd
+        tree -L 2
         git clone https://github.com/zzh-zzh-zzh/AnyKernel3.git -b GKI --depth=1
         cp android-kernel/out/android12-5.10/dist/Image AnyKernel3
         cd AnyKernel3
         7z a -mx9 tmp.zip *
         zipalign -v 4 tmp.zip ../$VERSION.zip
         rm tmp.zip
+
     - name: Upload Image
-
       uses: actions/upload-artifact@v3
-
       with:
-
         path: GKI-5.10-*.zip
