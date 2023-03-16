@@ -29,7 +29,7 @@ jobs:
         cd common
         git checkout --orphan android12-5.10-2022-01
         git rm -rf .
-        git pull https://github.com/huazhaozhe/android_gki_kernel_5.10_common_xaga.git -b android12-5.10-2022-01 --depth=1
+        git pull https://github.com/huazhaozhe/android_gki_kernel_5.10_common_xaga.git android12-5.10-2022-01
 
     - name: Build Kernel
       run: |
@@ -50,7 +50,7 @@ jobs:
         7z a -mx9 tmp.zip *
         zipalign -v 4 tmp.zip ../$VERSION.zip
         rm tmp.zip
-
+        
     - name: Upload Image
       uses: actions/upload-artifact@v3
       with:
