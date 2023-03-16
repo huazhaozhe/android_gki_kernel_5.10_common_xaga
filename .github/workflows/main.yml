@@ -1,17 +1,11 @@
 name: Build android common kernel
-
 on:
-
   push:
-
     branches: [ "android12-5.10-2022-01" ]
-
+    
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - name: Install Package For Build
       run: |
