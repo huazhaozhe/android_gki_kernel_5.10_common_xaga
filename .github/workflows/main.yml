@@ -48,6 +48,7 @@ jobs:
       - name: build gki
         run: |
           pwd
+          ls -alh
           du -h --max-depth=1
           ls -alh android-kernel
           mv -n android-kernel/* .
